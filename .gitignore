@@ -1,0 +1,6 @@
+
+.idea/
+
+EHEpileptor_Env/EpEnvs/__pycache__/
+
+*.pyc
