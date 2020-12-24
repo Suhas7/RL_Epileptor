@@ -2,8 +2,10 @@ import gym
 from gym import error, spaces, utils
 import numpy as np
 from EpEnvs.envs.Backends import JSim, EHSim
+
 Fs = 512
 finalTime = 100
+
 
 class EpileptorEnv(gym.Env):
     metadata = {'render.modes': ['human']}
@@ -14,14 +16,14 @@ class EpileptorEnv(gym.Env):
         specifying the type of possible observations and actions using spaces.Box or spaces.Discrete.
         """
         self.observation_space = spaces.Box(
-            low=np.array([-999, -999, -999, -999, -999]),
-            high=np.array([999, 999, 999, 999, 999])
+            low=np.array([-15, -15, -15, -15, -15]),
+            high=np.array([15, 15, 15, 15, 15])
         )
         self.action_space = spaces.Box(
-            low=np.array([-999, -999, -999, -999, -999]),
-            high=np.array([999, 999, 999, 999, 999])
+            low=np.array([-15, -15, -15, -15, -15]),
+            high=np.array([15, 15, 15, 15, 15])
         )
-        if backend=="EH":
+        if backend == "EH":
             self.params = {
                 "a_1": 1,
                 "b_1": 3,
@@ -36,7 +38,7 @@ class EpileptorEnv(gym.Env):
                 "r": .00035,
                 "s": 4,
                 "x0": -1.6,
-                "tstep": 1/Fs
+                "tstep": 1 / Fs
             }
             self.sim = EHSim()
         else:
@@ -103,15 +105,15 @@ class EpileptorEnv(gym.Env):
         print(self.history)
 
     def system_step(self):
-        sigmaNoise = np.array([0.025, 0.025, 0.0, 0.25, 0.25, 0.]) * 0.01
-        x1p = self.sim.xhat_1(self) + np.random.normal(loc = 0.0, scale = np.sqrt(self.params['tstep']))*sigmaNoise[0]
-        y1p = self.sim.yhat_1(self) + np.random.normal(loc = 0.0, scale = np.sqrt(self.params['tstep']))*sigmaNoise[1]
-        zp  = self.sim.zhat(self)   + np.random.normal(loc = 0.0, scale = np.sqrt(self.params['tstep']))*sigmaNoise[2]
-        x2p = self.sim.xhat_2(self) + np.random.normal(loc = 0.0, scale = np.sqrt(self.params['tstep']))*sigmaNoise[3]
-        y2p = self.sim.yhat_2(self) + np.random.normal(loc = 0.0, scale = np.sqrt(self.params['tstep']))*sigmaNoise[4]
-        self.x1 += x1p * self.params['tstep']
-        self.x2 += x2p * self.params['tstep']
-        self.y1 += y1p * self.params['tstep']
-        self.y2 += y2p * self.params['tstep']
-        self.z  += zp  * self.params['tstep']
-
+        sigmaNoise = np.array([0.025, 0.025, 0.0, 0.25, 0.25, 0.]) * .1
+        noise = lambda p: np.random.normal(loc=0.0, scale=np.sqrt(self.params['tstep'])) * sigmaNoise[p]
+        x1p = self.sim.xhat_1(self)
+        y1p = self.sim.yhat_1(self)
+        zp = self.sim.zhat(self)
+        x2p = self.sim.xhat_2(self)
+        y2p = self.sim.yhat_2(self)
+        self.x1 += x1p * self.params['tstep'] + noise(0)
+        self.x2 += x2p * self.params['tstep'] + noise(0)
+        self.y1 += y1p * self.params['tstep'] + noise(0)
+        self.y2 += y2p * self.params['tstep'] + noise(0)
+        self.z += zp * self.params['tstep'] + noise(0)
