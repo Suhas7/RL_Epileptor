@@ -1,20 +1,22 @@
 from EpEnvs.envs.Epileptor_Env import EpileptorEnv
 
+baseTest = True
+
 config = {
-    "backend":"J",
+    "backend": "Jirsa",
     "Fs": 512,
-    "finalTime": 100,
+    "finalTime": 4000,
 }
 
 env = EpileptorEnv(config)
 
-data = []
-for i in range(config["finalTime"] * config["Fs"]):
-    # print(i)
-    env.step(None)[0]
+if baseTest:
+    for i in range(config["finalTime"] * config["Fs"]):
+        if i%600==0: env.step([5,6])[0]
+        else: env.step([0,0])[0]
 
-env.render()
-exit(0)
+    env.render()
+    exit(0)
 ### Model Iteration
 
 from stable_baselines import DDPG, PPO2

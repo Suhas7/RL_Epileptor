@@ -18,8 +18,8 @@ class EpileptorEnv(gym.Env):
             high=np.array([15, 15, 15, 15, 15])
         )
         self.action_space = spaces.Box(
-            low=np.array([-15, -15, -15, -15, -15]),
-            high=np.array([15, 15, 15, 15, 15])
+            low=np.array([0, 0]),
+            high=np.array([15, 5])
         )
         if config["backend"] == "EH":
             self.params = {
@@ -56,6 +56,7 @@ class EpileptorEnv(gym.Env):
         self.x2 = 0
         self.y2 = 0
         self.frame = 0
+        self.curr_stim = []
         self.reset()
         self.history = list()
 
@@ -69,9 +70,10 @@ class EpileptorEnv(gym.Env):
                     information provided by the environment about its current state:
                     (observation, reward, done)
         """
+        if len(self.curr_stim) == 0:
+            self.curr_stim += [action[0]] * action[1] + [-action[0]] * action[1]
         self.system_step()
-        self.frame += 1/self.config["Fs"]
-        # todo process action
+        self.frame += 1 / self.config["Fs"]
         self.history.append(self.x2-self.x1)
         return self.get_state(), 0, False
 
@@ -98,20 +100,25 @@ class EpileptorEnv(gym.Env):
         This methods provides the option to render the environment's behavior to a window
         which should be readable to the human eye if mode is set to 'human'.
         """
-        print(self.history)
+        plt.figure(figsize=(20,12))
         plt.plot(self.history)
         plt.show()
 
     def system_step(self):
         sigmaNoise = np.array([0.025, 0.025, 0.0, 0.25, 0.25, 0.]) * .1
-        noise = lambda p: np.random.normal(loc=0.0, scale=np.sqrt(1/self.config['Fs'])) * sigmaNoise[p]
+        #noise = lambda p: np.random.normal(loc=0.0, scale=np.sqrt(1/self.config['Fs'])) * sigmaNoise[p]
+        noise = lambda p: 0
         x1p = self.sim.xhat_1(self)
         y1p = self.sim.yhat_1(self)
         zp = self.sim.zhat(self)
         x2p = self.sim.xhat_2(self)
         y2p = self.sim.yhat_2(self)
-        self.x1 += x1p / self.config['Fs'] + noise(0)
-        self.x2 += x2p / self.config['Fs'] + noise(0)
-        self.y1 += y1p / self.config['Fs'] + noise(0)
-        self.y2 += y2p / self.config['Fs'] + noise(0)
-        self.z  += zp  / self.config['Fs'] + noise(0)
+        stim = 0
+        if len(self.curr_stim)>0:
+            stim=self.curr_stim[0]
+            self.curr_stim=self.curr_stim[1:]
+        self.x1 += x1p / self.config['Fs'] + noise(0) + .01*stim
+        self.y1 += y1p / self.config['Fs'] + noise(1)
+        self.z  += zp  / self.config['Fs'] + noise(2)
+        self.x2 += x2p / self.config['Fs'] + noise(3) + .01*stim
+        self.y2 += y2p / self.config['Fs'] + noise(4)
