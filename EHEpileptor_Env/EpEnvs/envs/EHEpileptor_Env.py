@@ -77,16 +77,16 @@ class EHEpileptorEnv(gym.Env):
         print(self.history)
 
     def system_step(self):
-        x1 = self.xhat_1()
-        y1 = self.yhat_1()
-        x2 = self.xhat_2()
-        y2 = self.yhat_2()
-        z  = self.zhat()
-        self.x1 = x1 * self.params['tstep'] + self.x1*(1-self.params['tstep'])
-        self.x2 = x2 * self.params['tstep'] + self.x2*(1-self.params['tstep'])
-        self.y1 = y1 * self.params['tstep'] + self.y1*(1-self.params['tstep'])
-        self.y2 = y2 * self.params['tstep'] + self.y2*(1-self.params['tstep'])
-        self.z  = z  * self.params['tstep'] + self.z*(1-self.params['tstep'])
+        x1p = self.xhat_1()
+        y1p = self.yhat_1()
+        x2p = self.xhat_2()
+        y2p = self.yhat_2()
+        zp  = self.zhat()
+        self.x1 += x1p * self.params['tstep']
+        self.x2 += x2p * self.params['tstep']
+        self.y1 += y1p * self.params['tstep']
+        self.y2 += y2p * self.params['tstep']
+        self.z  += zp  * self.params['tstep']
 
     def f1(self) -> float:
         x1 = self.x1
@@ -152,10 +152,10 @@ class JEpileptorEnv(gym.Env):
         )
         self.params = params
         self.x1 = 0
+        self.y1 = -5
+        self.z = 3
         self.x2 = 0
-        self.y1 = 0
         self.y2 = 0
-        self.z = 0
         self.frame = 0
         self.reset()
         self.history = list()
@@ -202,16 +202,17 @@ class JEpileptorEnv(gym.Env):
         print(self.history)
 
     def system_step(self):
-        x1 = self.xhat_1()
-        x2 = self.xhat_2()
-        z  = self.zhat()
-        y1 = self.yhat_1()
-        y2 = self.yhat_2()
-        self.x1 = x1 * self.params['tstep'] + self.x1*(1-self.params['tstep'])
-        self.y1 = y1 * self.params['tstep'] + self.y1*(1-self.params['tstep'])
-        self.z  = z  * self.params['tstep'] + self.z*(1-self.params['tstep'])
-        self.x2 = x2 * self.params['tstep'] + self.x2*(1-self.params['tstep'])
-        self.y2 = y2 * self.params['tstep'] + self.y2*(1-self.params['tstep'])
+        sigmaNoise = np.array([0.025, 0.025, 0.0, 0.25, 0.25, 0.]) * 0.01
+        x1p = self.xhat_1() + np.random.normal(loc = 0.0, scale = np.sqrt(self.params['tstep']))*sigmaNoise[0]
+        y1p = self.yhat_1() + np.random.normal(loc = 0.0, scale = np.sqrt(self.params['tstep']))*sigmaNoise[1]
+        zp  = self.zhat()   + np.random.normal(loc = 0.0, scale = np.sqrt(self.params['tstep']))*sigmaNoise[2]
+        x2p = self.xhat_2() + np.random.normal(loc = 0.0, scale = np.sqrt(self.params['tstep']))*sigmaNoise[3]
+        y2p = self.yhat_2() + np.random.normal(loc = 0.0, scale = np.sqrt(self.params['tstep']))*sigmaNoise[4]
+        self.x1 += x1p * self.params['tstep']
+        self.x2 += x2p * self.params['tstep']
+        self.y1 += y1p * self.params['tstep']
+        self.y2 += y2p * self.params['tstep']
+        self.z  += zp  * self.params['tstep']
 
     def f1(self) -> float:
         x1 = self.x1

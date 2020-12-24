@@ -1,4 +1,7 @@
-from EpEnvs.envs.EHEpileptor_Env import EHEpileptorEnv
+from EpEnvs.envs.EHEpileptor_Env import EHEpileptorEnv, JEpileptorEnv
+import matplotlib.pyplot as plt
+Fs=512
+finalTime = 1000
 
 paramsEH = {
     "a_1": 1,
@@ -14,7 +17,7 @@ paramsEH = {
     "r": .00035,
     "s": 4,
     "x0": -1.6,
-    "tstep": 1
+    "tstep": 1/Fs
 }
 
 paramsJ = {
@@ -26,14 +29,18 @@ paramsJ = {
     "I_rst1": 3.1,
     "I_rst2": .45,
     "gamma": .01,
-    "tstep": 1
+    "tstep": 1/Fs
 }
 
-env = EHEpileptorEnv(params1)
-
-for i in range(1000):
-    print(i)
-    print(env.step(None)[0])
+env = JEpileptorEnv(paramsJ)
+#env = EHEpileptorEnv(paramsEH)
+data=[]
+for i in range(finalTime*Fs):
+    #print(i)
+    res=env.step(None)[0]
+    data.append(res[3]-res[0])
+plt.plot(data)
+plt.show()
 
 exit(0)
 ### Model Iteration
