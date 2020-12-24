@@ -1,1 +1,2 @@
-from EpEnvs.envs.EHEpileptor_Env import EHEpileptorEnv
+from EpEnvs.envs.Epileptor_Env import EpileptorEnv
+from EpEnvs.envs.Backends import JSim, EHSim

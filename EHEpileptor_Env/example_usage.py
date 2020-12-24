@@ -1,39 +1,10 @@
-from EpEnvs.envs.EHEpileptor_Env import EHEpileptorEnv, JEpileptorEnv
+from EpEnvs.envs.Epileptor_Env import EpileptorEnv
 import matplotlib.pyplot as plt
 Fs=512
-finalTime = 1000
+finalTime = 100
 
-paramsEH = {
-    "a_1": 1,
-    "b_1": 3,
-    "c_1": 1,
-    "d_1": 5,
-    "I_ext1": 3.1,
-    "m": 0,
-    "a_2": 6,
-    "tau_2": 10,
-    "I_ext2": .45,
-    "gamma": .01,
-    "r": .00035,
-    "s": 4,
-    "x0": -1.6,
-    "tstep": 1/Fs
-}
+env = EpileptorEnv("E")
 
-paramsJ = {
-    "x0": -1.6,
-    "y0": 1,
-    "tau0": 2857,
-    "tau1": 1,
-    "tau2": 10,
-    "I_rst1": 3.1,
-    "I_rst2": .45,
-    "gamma": .01,
-    "tstep": 1/Fs
-}
-
-env = JEpileptorEnv(paramsJ)
-#env = EHEpileptorEnv(paramsEH)
 data=[]
 for i in range(finalTime*Fs):
     #print(i)
