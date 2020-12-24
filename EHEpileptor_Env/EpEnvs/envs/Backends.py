@@ -51,7 +51,8 @@ class EHSim:
 
 class JSim:
     def __init__(self):
-        pass
+        self.g_val=0
+
     def f1(a,self) -> float:
         x1 = self.x1
         x2 = self.x2
@@ -69,6 +70,7 @@ class JSim:
             return 0
 
     def g(a,self) -> float:
+        return a.g_val
         return self.x1*integrate.quad(
             lambda x: x*np.exp(-self.params['gamma'] * (self.frame - x)),
             0, self.frame
@@ -85,10 +87,13 @@ class JSim:
 
     def xhat_2(a,self) -> float:
         return -self.y2 + self.x2 - (self.x2 ** 3) + self.params['I_rst2'] \
-               + .002 * a.g(self) - .3 * (self.z - 3.5)
+               + .002 * a.g_val - .3 * (self.z - 3.5)
 
     def yhat_2(a,self) -> float:
         return (-self.y2 + a.f2(self)) / self.params['tau2']
+
+    def ghat(a, self):
+        a.g_val+= self.params["tstep"]*(-self.params["gamma"] * (a.g_val - 0.1 * self.x1))
 
     def __detect_SeizureState(a,self) -> float:
         pass

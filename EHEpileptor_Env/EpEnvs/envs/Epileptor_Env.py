@@ -2,7 +2,7 @@ import gym
 from gym import error, spaces, utils
 import numpy as np
 from EpEnvs.envs.Backends import JSim, EHSim
-Fs=512
+Fs = 512
 finalTime = 100
 
 class EpileptorEnv(gym.Env):
