@@ -2,19 +2,17 @@ import gym
 from gym import error, spaces, utils
 import numpy as np
 from EpEnvs.envs.Backends import JSim, EHSim
-
-Fs = 512
-finalTime = 100
-
+import matplotlib.pyplot as plt
 
 class EpileptorEnv(gym.Env):
     metadata = {'render.modes': ['human']}
 
-    def __init__(self, backend):
+    def __init__(self, config):
         """
         Every environment should be derived from gym.Env and at least contain the variables observation_space and action_space
         specifying the type of possible observations and actions using spaces.Box or spaces.Discrete.
         """
+        self.config = config
         self.observation_space = spaces.Box(
             low=np.array([-15, -15, -15, -15, -15]),
             high=np.array([15, 15, 15, 15, 15])
@@ -23,7 +21,7 @@ class EpileptorEnv(gym.Env):
             low=np.array([-15, -15, -15, -15, -15]),
             high=np.array([15, 15, 15, 15, 15])
         )
-        if backend == "EH":
+        if config["backend"] == "EH":
             self.params = {
                 "a_1": 1,
                 "b_1": 3,
@@ -38,7 +36,6 @@ class EpileptorEnv(gym.Env):
                 "r": .00035,
                 "s": 4,
                 "x0": -1.6,
-                "tstep": 1 / Fs
             }
             self.sim = EHSim()
         else:
@@ -51,7 +48,6 @@ class EpileptorEnv(gym.Env):
                 "I_rst1": 3.1,
                 "I_rst2": .45,
                 "gamma": .01,
-                "tstep": 1 / Fs
             }
             self.sim = JSim()
         self.x1 = 0
@@ -74,9 +70,9 @@ class EpileptorEnv(gym.Env):
                     (observation, reward, done)
         """
         self.system_step()
-        self.frame += self.params["tstep"]
-        self.history.append(self.get_state())
+        self.frame += 1/self.config["Fs"]
         # todo process action
+        self.history.append(self.x2-self.x1)
         return self.get_state(), 0, False
 
     def reset(self) -> list:
@@ -103,17 +99,19 @@ class EpileptorEnv(gym.Env):
         which should be readable to the human eye if mode is set to 'human'.
         """
         print(self.history)
+        plt.plot(self.history)
+        plt.show()
 
     def system_step(self):
         sigmaNoise = np.array([0.025, 0.025, 0.0, 0.25, 0.25, 0.]) * .1
-        noise = lambda p: np.random.normal(loc=0.0, scale=np.sqrt(self.params['tstep'])) * sigmaNoise[p]
+        noise = lambda p: np.random.normal(loc=0.0, scale=np.sqrt(1/self.config['Fs'])) * sigmaNoise[p]
         x1p = self.sim.xhat_1(self)
         y1p = self.sim.yhat_1(self)
         zp = self.sim.zhat(self)
         x2p = self.sim.xhat_2(self)
         y2p = self.sim.yhat_2(self)
-        self.x1 += x1p * self.params['tstep'] + noise(0)
-        self.x2 += x2p * self.params['tstep'] + noise(0)
-        self.y1 += y1p * self.params['tstep'] + noise(0)
-        self.y2 += y2p * self.params['tstep'] + noise(0)
-        self.z += zp * self.params['tstep'] + noise(0)
+        self.x1 += x1p / self.config['Fs'] + noise(0)
+        self.x2 += x2p / self.config['Fs'] + noise(0)
+        self.y1 += y1p / self.config['Fs'] + noise(0)
+        self.y2 += y2p / self.config['Fs'] + noise(0)
+        self.z  += zp  / self.config['Fs'] + noise(0)

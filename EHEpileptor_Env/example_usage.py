@@ -1,18 +1,19 @@
 from EpEnvs.envs.Epileptor_Env import EpileptorEnv
-import matplotlib.pyplot as plt
-Fs=512
-finalTime = 100
 
-env = EpileptorEnv("E")
+config = {
+    "backend":"J",
+    "Fs": 512,
+    "finalTime": 100,
+}
 
-data=[]
-for i in range(finalTime*Fs):
-    #print(i)
-    res=env.step(None)[0]
-    data.append(res[3]-res[0])
-plt.plot(data)
-plt.show()
+env = EpileptorEnv(config)
 
+data = []
+for i in range(config["finalTime"] * config["Fs"]):
+    # print(i)
+    env.step(None)[0]
+
+env.render()
 exit(0)
 ### Model Iteration
 
